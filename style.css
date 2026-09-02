@@ -143,10 +143,28 @@ button {
   font-size: .92rem;
 }
 
+button svg {
+  width: 1.08rem;
+  height: 1.08rem;
+  display: block;
+  margin: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-play { fill: currentColor; stroke: none; }
+.icon-play, .is-paused .icon-pause { display: none; }
+.is-paused .icon-play { display: block; }
+.icon-heart-filled { display: none; fill: currentColor; stroke: none; }
+.heart.is-favorite .icon-heart-outline { display: none; }
+.heart.is-favorite .icon-heart-filled { display: block; }
+
 button:hover, button:focus-visible, select:hover, select:focus-visible { background: rgba(255, 255, 255, .1); }
 button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px rgba(255,255,255,.65); }
 button:disabled { opacity: .28; cursor: default; }
-.heart { font-size: 1.18rem; }
 .heart.is-favorite { color: #fff; }
 .divider { width: 1px; height: 1.25rem; margin: 0 .18rem; background: var(--border); }
 

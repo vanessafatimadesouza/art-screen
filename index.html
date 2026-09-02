@@ -48,10 +48,20 @@
       </section>
 
       <nav class="bottom-controls controls-surface" aria-label="Controles do slideshow">
-        <button id="previous-button" type="button" aria-label="Obra anterior" title="Obra anterior (←)">←</button>
-        <button id="play-button" type="button" aria-label="Pausar slideshow" title="Pausar ou continuar (Espaço)">Ⅱ</button>
-        <button id="next-button" type="button" aria-label="Próxima obra" title="Próxima obra (→)">→</button>
-        <button id="favorite-button" type="button" class="heart" aria-label="Adicionar aos favoritos" aria-pressed="false" title="Favoritar">♡</button>
+        <button id="previous-button" type="button" aria-label="Obra anterior" title="Obra anterior (←)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button id="play-button" type="button" aria-label="Pausar slideshow" title="Pausar ou continuar (Espaço)">
+          <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7v10M15 7v10"/></svg>
+        </button>
+        <button id="next-button" type="button" aria-label="Próxima obra" title="Próxima obra (→)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+        <button id="favorite-button" type="button" class="heart" aria-label="Adicionar aos favoritos" aria-pressed="false" title="Favoritar">
+          <svg class="icon-heart-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.7a5.4 5.4 0 0 0-7.6 0L12 6.9l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 22l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z"/></svg>
+          <svg class="icon-heart-filled" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.7a5.4 5.4 0 0 0-7.6 0L12 6.9l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 22l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z"/></svg>
+        </button>
         <span class="divider" aria-hidden="true"></span>
         <label class="select-wrap interval-wrap">
           <span class="sr-only">Intervalo de troca</span>
@@ -62,12 +72,14 @@
             <option value="1800000">30 min</option>
           </select>
         </label>
-        <button id="fullscreen-button" type="button" aria-label="Entrar em tela cheia" title="Tela cheia (F)">⛶</button>
+        <button id="fullscreen-button" type="button" aria-label="Entrar em tela cheia" title="Tela cheia (F)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+        </button>
       </nav>
 
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
     <noscript>O Art Screen precisa de JavaScript ativado para buscar e alternar as obras.</noscript>
-    <script src="script.js?v=9" defer></script>
+    <script src="script.js?v=10" defer></script>
   </body>
 </html>

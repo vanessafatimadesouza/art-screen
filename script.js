@@ -252,7 +252,6 @@
 
   function renderFavorite() {
     const favorite = state.current && state.favorites.some((item) => Number(item.objectID) === state.current.objectID);
-    elements.favorite.textContent = favorite ? "♥" : "♡";
     elements.favorite.classList.toggle("is-favorite", Boolean(favorite));
     elements.favorite.setAttribute("aria-pressed", String(Boolean(favorite)));
     elements.favorite.setAttribute("aria-label", favorite ? "Remover dos favoritos" : "Adicionar aos favoritos");
@@ -341,7 +340,7 @@
   function setPaused(paused) {
     state.paused = paused;
     try { localStorage.setItem("artScreen.paused", String(paused)); } catch { /* ignore */ }
-    elements.play.textContent = paused ? "▶" : "Ⅱ";
+    elements.play.classList.toggle("is-paused", paused);
     elements.play.setAttribute("aria-label", paused ? "Continuar slideshow" : "Pausar slideshow");
     paused ? clearTimeout(state.slideshowTimer) : scheduleSlideshow();
     showToast(paused ? "Slideshow pausado" : "Slideshow ativo");
@@ -445,7 +444,7 @@
     if (state.category === "favorites" && !state.favorites.length) state.category = "random";
     elements.category.value = state.category;
     elements.interval.value = String(state.interval);
-    elements.play.textContent = state.paused ? "▶" : "Ⅱ";
+    elements.play.classList.toggle("is-paused", state.paused);
     elements.play.setAttribute("aria-label", state.paused ? "Continuar slideshow" : "Pausar slideshow");
     elements.previous.disabled = true;
     bindEvents();
