@@ -68,7 +68,7 @@ button, select { font: inherit; }
 .artwork {
   z-index: 2;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   opacity: 0;
   background: var(--background);
