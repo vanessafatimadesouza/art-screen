@@ -11,7 +11,8 @@
   const CANDIDATE_BATCH_SIZE = 3;
   const PRELOAD_QUEUE_SIZE = 4;
   const MIN_LANDSCAPE_RATIO = 1.15;
-  const REJECTED_TYPES = /sculpture|photograph|architecture|installation|furniture|vessel|ceramic|armor|textile|jewelry|coin|medal|relief|bust|statue|metalwork|musical instrument|costume/i;
+  const REJECTED_TYPES = /sculpture|photograph|architecture|installation|furniture|vessel|ceramic|armor|textile|jewelry|coin|medal|relief|bust|statue|metalwork|musical instrument|costume|basket|bowl|box|container|cup|dish|plate|weapon|tool|glassware|silverware|woodwork/i;
+  const REJECTED_ORIGINS = /japan|japanese|islamic|arab|arabic/i;
 
   const CATEGORIES = {
     random: { queries: ["painting", "landscape", "portrait", "still life", "oil painting"] },
@@ -19,7 +20,6 @@
     landscapes: { queries: ["landscape painting", "landscape"] },
     portraits: { queries: ["portrait painting", "portrait"] },
     nature: { queries: ["flowers painting", "nature painting", "animals painting"] },
-    japanese: { queries: ["Japanese art", "ukiyo-e"], departmentId: 6 },
     nineteenth: { queries: ["19th century painting", "nineteenth century painting"] },
     "van-gogh": { queries: ["Vincent van Gogh"] },
     monet: { queries: ["Claude Monet"] },
@@ -84,6 +84,8 @@
     if (!image) return null;
     const classificationText = [data.classification, data.objectName, data.medium].filter(Boolean).join(" ");
     if (REJECTED_TYPES.test(classificationText)) return null;
+    const originText = [data.culture, data.department, data.country, data.region, data.artistNationality].filter(Boolean).join(" ");
+    if (REJECTED_ORIGINS.test(originText)) return null;
     return {
       objectID: Number(data.objectID),
       title: (data.title || "Sem título").replace(/^\s*\[|\]\s*$/g, ""),
