@@ -153,7 +153,7 @@ select option { color: #eee; background: #171717; }
   z-index: 8;
   left: clamp(1.25rem, 2.5vw, 3rem);
   bottom: clamp(4.8rem, 8vh, 6.5rem);
-  max-width: min(32rem, calc(100vw - 2.5rem));
+  max-width: min(46rem, calc(100vw - 3rem));
   padding: 0;
   text-shadow: 0 2px 20px #000, 0 1px 6px #000;
   opacity: 0;
@@ -164,20 +164,25 @@ select option { color: #eee; background: #171717; }
 
 .artwork-info.is-visible { opacity: 1; transform: translateY(0); }
 .artwork-info h1 {
-  margin: 0 0 .42rem;
-  font-size: clamp(.95rem, 1.05vw, 1.08rem);
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: -.012em;
+  margin: 0 0 .5rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -.035em;
+  text-wrap: balance;
 }
 .artwork-info p {
   margin: .16rem 0 0;
-  font-size: clamp(.68rem, .72vw, .76rem);
-  font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: .005em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(.72rem, .82vw, .84rem);
+  font-weight: 450;
+  line-height: 1.45;
+  letter-spacing: -.005em;
   color: var(--muted);
 }
+#artwork-details { color: rgba(255, 255, 255, .68); }
+#artwork-museum { color: rgba(255, 255, 255, .42); }
 
 .toast {
   position: absolute;
