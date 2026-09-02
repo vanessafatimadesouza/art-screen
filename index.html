@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#050505">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Art Screen transforma uma tela em uma galeria de arte digital minimalista.">
+    <title>Art Screen</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main id="app" class="app is-ui-visible" aria-label="Art Screen">
+      <div class="artwork-stage" aria-live="polite">
+        <img id="artwork-a" class="artwork is-active" alt="" draggable="false">
+        <img id="artwork-b" class="artwork" alt="" draggable="false">
+        <div id="welcome" class="welcome">
+          <p class="eyebrow">ART SCREEN</p>
+          <p id="status-text">Preparando a galeria…</p>
+        </div>
+      </div>
+
+      <header class="top-controls controls-surface" aria-label="Filtros da galeria">
+        <label class="select-wrap">
+          <span class="sr-only">Categoria</span>
+          <select id="category-select" aria-label="Escolher categoria">
+            <option value="random">Aleatório</option>
+            <option value="impressionism">Impressionismo</option>
+            <option value="landscapes">Paisagens</option>
+            <option value="portraits">Retratos</option>
+            <option value="nature">Natureza</option>
+            <option value="japanese">Arte japonesa</option>
+            <option value="nineteenth">Século XIX</option>
+            <option value="van-gogh">Van Gogh</option>
+            <option value="monet">Monet</option>
+            <option value="rembrandt">Rembrandt</option>
+            <option value="favorites">Favoritos</option>
+          </select>
+        </label>
+      </header>
+
+      <section id="artwork-info" class="artwork-info" aria-label="Informações da obra">
+        <h1 id="artwork-title"></h1>
+        <p id="artwork-details"></p>
+        <p id="artwork-museum"></p>
+      </section>
+
+      <nav class="bottom-controls controls-surface" aria-label="Controles do slideshow">
+        <button id="previous-button" type="button" aria-label="Obra anterior" title="Obra anterior (←)">←</button>
+        <button id="play-button" type="button" aria-label="Pausar slideshow" title="Pausar ou continuar (Espaço)">Ⅱ</button>
+        <button id="next-button" type="button" aria-label="Próxima obra" title="Próxima obra (→)">→</button>
+        <button id="favorite-button" type="button" class="heart" aria-label="Adicionar aos favoritos" aria-pressed="false" title="Favoritar">♡</button>
+        <span class="divider" aria-hidden="true"></span>
+        <label class="select-wrap interval-wrap">
+          <span class="sr-only">Intervalo de troca</span>
+          <select id="interval-select" aria-label="Intervalo de troca">
+            <option value="60000">1 min</option>
+            <option value="300000" selected>5 min</option>
+            <option value="600000">10 min</option>
+            <option value="1800000">30 min</option>
+          </select>
+        </label>
+        <button id="fullscreen-button" type="button" aria-label="Entrar em tela cheia" title="Tela cheia (F)">⛶</button>
+      </nav>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+    <noscript>O Art Screen precisa de JavaScript ativado para buscar e alternar as obras.</noscript>
+    <script src="script.js" defer></script>
+  </body>
+</html>
