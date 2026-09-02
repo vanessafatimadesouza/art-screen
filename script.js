@@ -13,6 +13,7 @@
   const MIN_LANDSCAPE_RATIO = 1.15;
   const REJECTED_TYPES = /sculpture|photograph|architecture|installation|furniture|vessel|ceramic|armor|textile|jewelry|coin|medal|relief|bust|statue|metalwork|musical instrument|costume|basket|bowl|box|container|cup|dish|plate|weapon|tool|glassware|silverware|woodwork/i;
   const REJECTED_ORIGINS = /japan|japanese|islamic|arab|arabic/i;
+  const REJECTED_CONTENT = /\b(nude|nudity|naked|erotic|bather|bathers|venus|aphrodite|adam and eve|bathsheba)\b/i;
 
   const CATEGORIES = {
     random: { queries: ["Renaissance painting", "Italian Renaissance painting", "Northern Renaissance painting", "landscape painting", "nature painting", "flowers painting", "botanical painting", "oil painting"] },
@@ -87,6 +88,9 @@
     if (REJECTED_TYPES.test(classificationText)) return null;
     const originText = [data.culture, data.department, data.country, data.region, data.artistNationality].filter(Boolean).join(" ");
     if (REJECTED_ORIGINS.test(originText)) return null;
+    const tagsText = Array.isArray(data.tags) ? data.tags.map((tag) => tag?.term).filter(Boolean).join(" ") : "";
+    const contentText = [data.title, data.classification, data.objectName, data.medium, tagsText].filter(Boolean).join(" ");
+    if (REJECTED_CONTENT.test(contentText)) return null;
     return {
       objectID: Number(data.objectID),
       title: (data.title || "Sem título").replace(/^\s*\[|\]\s*$/g, ""),
