@@ -8,7 +8,8 @@ O projeto é inteiramente estático: HTML, CSS e JavaScript puro. Não há build
 
 - A página consulta a [Collection API do Metropolitan Museum of Art](https://metmuseum.github.io/).
 - Primeiro busca identificadores relacionados à categoria escolhida e depois carrega apenas os dados necessários de uma obra por vez.
-- A imagem seguinte é carregada e decodificada antes da troca. A obra atual permanece visível se a API ou a imagem seguinte falhar.
+- A imagem seguinte é carregada e decodificada antes da troca.
+- O filtro aceita somente imagens horizontais de obras bidimensionais, descartando esculturas, fotografias de objetos, arquitetura e instalações. A obra atual permanece visível se a API ou a imagem seguinte falhar.
 - Favoritos, categoria, intervalo, pausa e um histórico recente ficam apenas neste navegador, em `localStorage`.
 - O histórico reduz repetições recentes. Somente a obra atual e a próxima imagem preparada ficam carregadas.
 - A API do Met é pública, não exige chave e permite chamadas diretas do navegador (CORS).

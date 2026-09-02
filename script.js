@@ -9,6 +9,7 @@
   const FETCH_TIMEOUT = 12000;
   const MAX_ATTEMPTS = 24;
   const MIN_LANDSCAPE_RATIO = 1.15;
+  const REJECTED_TYPES = /sculpture|photograph|architecture|installation|furniture|vessel|ceramic|armor|textile|jewelry|coin|medal|relief|bust|statue|metalwork|musical instrument|costume/i;
 
   const CATEGORIES = {
     random: { queries: ["painting", "landscape", "portrait", "still life", "oil painting"] },
@@ -76,6 +77,8 @@
   function normalizeArtwork(data) {
     const image = data.primaryImage || data.primaryImageSmall;
     if (!image) return null;
+    const classificationText = [data.classification, data.objectName, data.medium].filter(Boolean).join(" ");
+    if (REJECTED_TYPES.test(classificationText)) return null;
     return {
       objectID: Number(data.objectID),
       title: (data.title || "Sem título").replace(/^\s*\[|\]\s*$/g, ""),
@@ -84,6 +87,7 @@
       museum: data.repository || "The Metropolitan Museum of Art",
       image,
       department: data.department || "",
+      classification: data.classification || data.objectName || "",
       publicDomain: Boolean(data.isPublicDomain)
     };
   }
@@ -120,7 +124,8 @@
     const fallback = candidates.length ? candidates : state.favorites;
     if (!fallback.length) throw new Error("Nenhum favorito salvo");
     const saved = fallback[Math.floor(Math.random() * fallback.length)];
-    const artwork = saved.image ? saved : normalizeArtwork(await getJSON(`${API_ROOT}/objects/${saved.objectID}`));
+    const savedText = [saved.title, saved.classification, saved.objectName].filter(Boolean).join(" ");
+    const artwork = saved.image && !REJECTED_TYPES.test(savedText) ? saved : normalizeArtwork(await getJSON(`${API_ROOT}/objects/${saved.objectID}`));
     if (!artwork) throw new Error("Favorito sem imagem");
     await preloadImage(artwork.image);
     return artwork;
