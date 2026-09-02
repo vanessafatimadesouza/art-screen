@@ -8,6 +8,8 @@
   const RECENT_LIMIT = 35;
   const FETCH_TIMEOUT = 12000;
   const MAX_ATTEMPTS = 24;
+  const CANDIDATE_BATCH_SIZE = 3;
+  const PRELOAD_QUEUE_SIZE = 4;
   const MIN_LANDSCAPE_RATIO = 1.15;
   const REJECTED_TYPES = /sculpture|photograph|architecture|installation|furniture|vessel|ceramic|armor|textile|jewelry|coin|medal|relief|bust|statue|metalwork|musical instrument|costume/i;
 
@@ -26,7 +28,8 @@
 
   const $ = (id) => document.getElementById(id);
   const elements = {
-    app: $("app"), images: [$("artwork-a"), $("artwork-b")], welcome: $("welcome"), status: $("status-text"),
+    app: $("app"), images: [$("artwork-a"), $("artwork-b")], backdrops: [$("backdrop-a"), $("backdrop-b")],
+    welcome: $("welcome"), status: $("status-text"),
     info: $("artwork-info"), title: $("artwork-title"), details: $("artwork-details"), museum: $("artwork-museum"),
     previous: $("previous-button"), play: $("play-button"), next: $("next-button"), favorite: $("favorite-button"),
     fullscreen: $("fullscreen-button"), category: $("category-select"), interval: $("interval-select"), toast: $("toast")
@@ -41,7 +44,9 @@
   const state = {
     current: null,
     activeImage: 0,
-    nextArtworkPromise: null,
+    nextArtworks: [],
+    nextArtworkWaiters: [],
+    queueFilling: false,
     previous: [],
     recent: loadJSON("artScreen.recent", []).map(Number).filter(Number.isFinite).slice(-RECENT_LIMIT),
     favorites: loadJSON("artScreen.favorites", []).filter((item) => item && item.objectID),
@@ -88,7 +93,8 @@
       image,
       department: data.department || "",
       classification: data.classification || data.objectName || "",
-      publicDomain: Boolean(data.isPublicDomain)
+      publicDomain: Boolean(data.isPublicDomain),
+      previewImage: data.primaryImageSmall || image
     };
   }
 
@@ -102,7 +108,7 @@
           reject(new Error("Formato vertical não selecionado"));
           return;
         }
-        resolve(src);
+        resolve(image);
       };
       image.onerror = () => reject(new Error("Imagem indisponível"));
       image.src = src;
@@ -127,40 +133,90 @@
     const savedText = [saved.title, saved.classification, saved.objectName].filter(Boolean).join(" ");
     const artwork = saved.image && !REJECTED_TYPES.test(savedText) ? saved : normalizeArtwork(await getJSON(`${API_ROOT}/objects/${saved.objectID}`));
     if (!artwork) throw new Error("Favorito sem imagem");
-    await preloadImage(artwork.image);
+    artwork.previewImage ||= artwork.image;
+    artwork.preloadedPreview = await preloadImage(artwork.previewImage);
     return artwork;
   }
 
-  async function findArtwork(category = state.category) {
-    const excluded = new Set([...state.recent, state.current?.objectID].filter(Boolean).map(Number));
+  async function loadCandidate(objectID) {
+    const artwork = normalizeArtwork(await getJSON(`${API_ROOT}/objects/${objectID}`));
+    if (!artwork) throw new Error("Obra sem imagem compativel");
+    artwork.preloadedPreview = await preloadImage(artwork.previewImage);
+    return artwork;
+  }
+
+  async function findArtwork(category = state.category, extraExcluded = []) {
+    const excluded = new Set([...state.recent, state.current?.objectID, ...extraExcluded].filter(Boolean).map(Number));
     if (category === "favorites") return artworkFromFavorites(excluded);
 
     let pool = state.idPools.get(category) || [];
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += CANDIDATE_BATCH_SIZE) {
       if (!pool.length) {
         pool = await searchIDs(category);
         state.idPools.set(category, pool);
       }
-      const objectID = Number(pool.pop());
-      if (!objectID || excluded.has(objectID)) continue;
+      const candidateIDs = [];
+      while (pool.length && candidateIDs.length < CANDIDATE_BATCH_SIZE) {
+        const objectID = Number(pool.pop());
+        if (objectID && !excluded.has(objectID)) candidateIDs.push(objectID);
+      }
+      if (!candidateIDs.length) continue;
       try {
-        const artwork = normalizeArtwork(await getJSON(`${API_ROOT}/objects/${objectID}`));
-        if (!artwork) continue;
-        await preloadImage(artwork.image);
-        return artwork;
-      } catch { /* try another object silently */ }
+        return await Promise.any(candidateIDs.map(loadCandidate));
+      } catch { /* try another batch */ }
     }
     state.idPools.delete(category);
     throw new Error("Não foi possível preparar outra obra");
   }
 
+  function resetPreparedQueue() {
+    state.nextArtworks = [];
+    state.nextArtworkWaiters.splice(0).forEach((resolve) => resolve(null));
+  }
+
+  async function fillArtworkQueue(generation) {
+    const targetSize = state.category === "favorites"
+      ? Math.min(PRELOAD_QUEUE_SIZE, Math.max(1, state.favorites.length))
+      : PRELOAD_QUEUE_SIZE;
+    let failed = false;
+    try {
+      while (generation === state.generation && (state.nextArtworks.length < targetSize || state.nextArtworkWaiters.length)) {
+        const queuedIDs = state.nextArtworks.map((artwork) => artwork.objectID);
+        const artwork = await findArtwork(state.category, queuedIDs);
+        if (generation !== state.generation) return;
+        const waiter = state.nextArtworkWaiters.shift();
+        if (waiter) waiter(artwork);
+        else state.nextArtworks.push(artwork);
+      }
+    } catch {
+      failed = true;
+      state.nextArtworkWaiters.splice(0).forEach((resolve) => resolve(null));
+    } finally {
+      state.queueFilling = false;
+      const refillCurrentQueue = generation === state.generation && !failed && state.nextArtworks.length < targetSize;
+      if (state.current && (state.nextArtworkWaiters.length || refillCurrentQueue)) {
+        setTimeout(prepareNext, 0);
+      }
+    }
+  }
+
   function prepareNext() {
-    if (!state.current) return;
+    if (!state.current || state.queueFilling) return;
     const generation = state.generation;
-    state.nextArtworkPromise = findArtwork().then((artwork) => {
-      if (generation !== state.generation) throw new Error("Seleção alterada");
-      return artwork;
-    }).catch(() => null);
+    state.queueFilling = true;
+    fillArtworkQueue(generation);
+  }
+
+  function takePreparedArtwork() {
+    const artwork = state.nextArtworks.shift();
+    if (artwork) {
+      prepareNext();
+      return Promise.resolve(artwork);
+    }
+    return new Promise((resolve) => {
+      state.nextArtworkWaiters.push(resolve);
+      prepareNext();
+    });
   }
 
   function updateInfo(artwork) {
@@ -168,6 +224,18 @@
     elements.details.textContent = [artwork.artist, artwork.year].filter(Boolean).join(" · ");
     elements.museum.textContent = artwork.museum;
     showInfo();
+  }
+
+  async function upgradeActiveImage(artwork, imageElement) {
+    if (!artwork.image || artwork.image === artwork.previewImage) return;
+    if (state.current?.objectID !== artwork.objectID || elements.images[state.activeImage] !== imageElement) return;
+    try {
+      await preloadImage(artwork.image);
+      if (state.current?.objectID !== artwork.objectID || elements.images[state.activeImage] !== imageElement) return;
+      imageElement.src = artwork.image;
+      elements.backdrops[state.activeImage].src = artwork.image;
+      if (imageElement.decode) await imageElement.decode();
+    } catch { /* keep the already visible preview */ }
   }
 
   function showInfo() {
@@ -195,9 +263,14 @@
     const nextIndex = 1 - state.activeImage;
     const incoming = elements.images[nextIndex];
     const outgoing = elements.images[state.activeImage];
-    incoming.src = artwork.image;
+    const incomingBackdrop = elements.backdrops[nextIndex];
+    const outgoingBackdrop = elements.backdrops[state.activeImage];
+    artwork.previewImage ||= artwork.image;
+    incoming.src = artwork.previewImage;
+    incomingBackdrop.src = artwork.previewImage;
     incoming.alt = `${artwork.title}, ${artwork.artist}`;
     try { if (incoming.decode) await incoming.decode(); } catch { /* preloaded already */ }
+    delete artwork.preloadedPreview;
 
     if (addToHistory && state.current) state.previous.push(state.current);
     state.current = artwork;
@@ -206,14 +279,21 @@
 
     incoming.classList.add("is-active");
     outgoing.classList.remove("is-active");
+    incomingBackdrop.classList.add("is-active");
+    outgoingBackdrop.classList.remove("is-active");
     state.activeImage = nextIndex;
     elements.welcome.classList.add("is-hidden");
     updateInfo(artwork);
     renderFavorite();
     elements.previous.disabled = state.previous.length === 0;
-    setTimeout(() => { if (!outgoing.classList.contains("is-active")) outgoing.removeAttribute("src"); }, 2800);
+    setTimeout(() => {
+      if (outgoing.classList.contains("is-active")) return;
+      outgoing.removeAttribute("src");
+      outgoingBackdrop.removeAttribute("src");
+    }, 2800);
     scheduleSlideshow();
     prepareNext();
+    setTimeout(() => upgradeActiveImage(artwork, incoming), 1200);
     return true;
   }
 
@@ -222,7 +302,7 @@
     state.loading = true;
     elements.next.disabled = true;
     try {
-      const prepared = state.nextArtworkPromise ? await state.nextArtworkPromise : null;
+      const prepared = await takePreparedArtwork();
       const artwork = prepared || await findArtwork();
       await displayArtwork(artwork);
     } catch {
@@ -240,8 +320,9 @@
     try {
       const artwork = state.previous.pop();
       state.generation += 1;
-      state.nextArtworkPromise = null;
-      await preloadImage(artwork.image);
+      resetPreparedQueue();
+      artwork.previewImage ||= artwork.image;
+      artwork.preloadedPreview = await preloadImage(artwork.previewImage);
       await displayArtwork(artwork, { addToHistory: false });
     } catch { showToast("A obra anterior não está mais disponível"); }
     finally { state.loading = false; elements.previous.disabled = state.previous.length === 0; }
@@ -309,7 +390,7 @@
     }
     state.category = category;
     state.generation += 1;
-    state.nextArtworkPromise = null;
+    resetPreparedQueue();
     state.idPools.delete(category);
     try { localStorage.setItem("artScreen.category", category); } catch { /* ignore */ }
     await goNext();
