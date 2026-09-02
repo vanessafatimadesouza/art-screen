@@ -77,7 +77,7 @@
     if (!image) return null;
     return {
       objectID: Number(data.objectID),
-      title: data.title || "Sem título",
+      title: (data.title || "Sem título").replace(/^\s*\[|\]\s*$/g, ""),
       artist: data.artistDisplayName || data.culture || "Artista desconhecido",
       year: data.objectDate || "",
       museum: data.repository || "The Metropolitan Museum of Art",
