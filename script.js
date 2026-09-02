@@ -16,7 +16,7 @@
   const REJECTED_CONTENT = /\b(nude|nudity|naked|erotic|bather|bathers|venus|aphrodite|adam and eve|bathsheba)\b/i;
 
   const CATEGORIES = {
-    random: { queries: ["Renaissance painting", "Italian Renaissance painting", "Northern Renaissance painting", "landscape painting", "nature painting", "flowers painting", "botanical painting", "oil painting"] },
+    random: { queries: ["painting", "oil painting", "masterpiece painting", "Renaissance painting", "portrait painting", "landscape painting", "nature painting", "still life painting"] },
     renaissance: { queries: ["Renaissance painting", "Italian Renaissance painting", "Northern Renaissance painting"] },
     impressionism: { queries: ["Impressionism", "Impressionist painting"] },
     landscapes: { queries: ["landscape painting", "landscape"] },
