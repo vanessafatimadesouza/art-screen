@@ -15,11 +15,12 @@
   const REJECTED_ORIGINS = /japan|japanese|islamic|arab|arabic/i;
 
   const CATEGORIES = {
-    random: { queries: ["painting", "landscape", "portrait", "still life", "oil painting"] },
+    random: { queries: ["Renaissance painting", "Italian Renaissance painting", "Northern Renaissance painting", "landscape painting", "nature painting", "flowers painting", "botanical painting", "oil painting"] },
+    renaissance: { queries: ["Renaissance painting", "Italian Renaissance painting", "Northern Renaissance painting"] },
     impressionism: { queries: ["Impressionism", "Impressionist painting"] },
     landscapes: { queries: ["landscape painting", "landscape"] },
     portraits: { queries: ["portrait painting", "portrait"] },
-    nature: { queries: ["flowers painting", "nature painting", "animals painting"] },
+    nature: { queries: ["flowers painting", "nature painting", "botanical painting", "animals painting"] },
     nineteenth: { queries: ["19th century painting", "nineteenth century painting"] },
     "van-gogh": { queries: ["Vincent van Gogh"] },
     monet: { queries: ["Claude Monet"] },
