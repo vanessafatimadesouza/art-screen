@@ -1,10 +1,10 @@
 :root {
   color-scheme: dark;
   --background: #050505;
-  --text: rgba(255, 255, 255, 0.92);
-  --muted: rgba(255, 255, 255, 0.58);
-  --surface: rgba(17, 17, 17, 0.72);
-  --border: rgba(255, 255, 255, 0.12);
+  --text: rgba(255, 255, 255, 0.88);
+  --muted: rgba(255, 255, 255, 0.5);
+  --surface: rgba(24, 24, 24, 0.58);
+  --border: rgba(255, 255, 255, 0.08);
   --fade: 2.4s;
 }
 
@@ -19,7 +19,9 @@ html, body {
 }
 
 body {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
   color: var(--text);
   user-select: none;
 }
@@ -81,14 +83,14 @@ button, select { font: inherit; }
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: .25rem;
-  padding: .35rem;
+  gap: .15rem;
+  padding: .25rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
-  box-shadow: 0 10px 35px rgba(0, 0, 0, .35);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
@@ -107,7 +109,7 @@ button, select { font: inherit; }
 .is-ui-visible .bottom-controls { transform: translate(-50%, 0); }
 
 button, select {
-  height: 2.45rem;
+  height: 2.3rem;
   border: 0;
   border-radius: 999px;
   color: var(--text);
@@ -116,17 +118,17 @@ button, select {
 }
 
 button {
-  min-width: 2.45rem;
-  padding: 0 .72rem;
+  min-width: 2.3rem;
+  padding: 0 .64rem;
   cursor: pointer;
   font-family: system-ui, sans-serif;
-  font-size: 1rem;
+  font-size: .92rem;
 }
 
 button:hover, button:focus-visible, select:hover, select:focus-visible { background: rgba(255, 255, 255, .1); }
 button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px rgba(255,255,255,.65); }
 button:disabled { opacity: .28; cursor: default; }
-.heart { font-size: 1.35rem; }
+.heart { font-size: 1.18rem; }
 .heart.is-favorite { color: #fff; }
 .divider { width: 1px; height: 1.25rem; margin: 0 .18rem; background: var(--border); }
 
@@ -134,8 +136,8 @@ select {
   max-width: 12rem;
   padding: 0 2rem 0 .9rem;
   cursor: pointer;
-  font: 500 .78rem/1 system-ui, sans-serif;
-  letter-spacing: .02em;
+  font: 450 .73rem/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0;
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,.7) 50%), linear-gradient(135deg, rgba(255,255,255,.7) 50%, transparent 50%);
   background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%;
@@ -149,12 +151,11 @@ select option { color: #eee; background: #171717; }
 .artwork-info {
   position: absolute;
   z-index: 8;
-  left: clamp(1.25rem, 3vw, 3.5rem);
-  bottom: clamp(5.25rem, 10vh, 7.5rem);
-  max-width: min(38rem, calc(100vw - 2.5rem));
-  padding: 1rem 1.2rem;
-  border-left: 1px solid rgba(255,255,255,.38);
-  text-shadow: 0 2px 18px #000, 0 1px 5px #000;
+  left: clamp(1.25rem, 2.5vw, 3rem);
+  bottom: clamp(4.8rem, 8vh, 6.5rem);
+  max-width: min(32rem, calc(100vw - 2.5rem));
+  padding: 0;
+  text-shadow: 0 2px 20px #000, 0 1px 6px #000;
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
@@ -162,8 +163,21 @@ select option { color: #eee; background: #171717; }
 }
 
 .artwork-info.is-visible { opacity: 1; transform: translateY(0); }
-.artwork-info h1 { margin: 0 0 .38rem; font-size: clamp(1.05rem, 1.5vw, 1.5rem); font-weight: 400; line-height: 1.25; }
-.artwork-info p { margin: .12rem 0 0; font: 400 clamp(.72rem, .9vw, .84rem)/1.45 system-ui, sans-serif; color: var(--muted); }
+.artwork-info h1 {
+  margin: 0 0 .42rem;
+  font-size: clamp(.95rem, 1.05vw, 1.08rem);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -.012em;
+}
+.artwork-info p {
+  margin: .16rem 0 0;
+  font-size: clamp(.68rem, .72vw, .76rem);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: .005em;
+  color: var(--muted);
+}
 
 .toast {
   position: absolute;
