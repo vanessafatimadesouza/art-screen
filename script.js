@@ -7,7 +7,8 @@
   const INFO_HIDE_DELAY = 8000;
   const RECENT_LIMIT = 35;
   const FETCH_TIMEOUT = 12000;
-  const MAX_ATTEMPTS = 14;
+  const MAX_ATTEMPTS = 24;
+  const MIN_LANDSCAPE_RATIO = 1.15;
 
   const CATEGORIES = {
     random: { queries: ["painting", "landscape", "portrait", "still life", "oil painting"] },
@@ -93,6 +94,10 @@
       image.decoding = "async";
       image.onload = async () => {
         try { if (image.decode) await image.decode(); } catch { /* already usable */ }
+        if (image.naturalWidth / image.naturalHeight < MIN_LANDSCAPE_RATIO) {
+          reject(new Error("Formato vertical não selecionado"));
+          return;
+        }
         resolve(src);
       };
       image.onerror = () => reject(new Error("Imagem indisponível"));
