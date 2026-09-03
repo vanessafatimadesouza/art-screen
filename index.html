@@ -9,12 +9,12 @@
     <title>Art Screen</title>
     <link rel="icon" type="image/png" href="logo.png?v=1">
     <link rel="apple-touch-icon" href="logo.png?v=1">
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
   </head>
   <body>
     <main id="app" class="app is-selection-visible" aria-label="Art Screen">
       <section id="selection-screen" class="selection-screen" aria-labelledby="selection-title">
-        <img id="selection-backdrop" class="selection-backdrop" alt="" aria-hidden="true" draggable="false">
+        <img id="selection-backdrop" class="selection-backdrop is-loaded" src="selection-background.png?v=1" alt="" aria-hidden="true" draggable="false">
         <div class="selection-shade" aria-hidden="true"></div>
         <div class="selection-content">
           <img class="brand-logo" src="logo.png?v=1" alt="" width="48" height="48">
@@ -96,6 +96,6 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
     <noscript>O Art Screen precisa de JavaScript ativado para buscar e alternar as obras.</noscript>
-    <script src="script.js?v=16" defer></script>
+    <script src="script.js?v=17" defer></script>
   </body>
 </html>

@@ -30,7 +30,7 @@
   const $ = (id) => document.getElementById(id);
   const elements = {
     app: $("app"), images: [$("artwork-a"), $("artwork-b")], backdrops: [$("backdrop-a"), $("backdrop-b")],
-    selection: $("selection-screen"), selectionBackdrop: $("selection-backdrop"), selectionStatus: $("selection-status"),
+    selection: $("selection-screen"), selectionStatus: $("selection-status"),
     start: $("start-button"), mood: $("mood-button"), moodSelect: $("mood-select"), favoriteMood: $("favorites-mood"),
     welcome: $("welcome"), status: $("status-text"),
     info: $("artwork-info"), title: $("artwork-title"), details: $("artwork-details"), museum: $("artwork-museum"),
@@ -55,7 +55,6 @@
     favorites: loadJSON("artScreen.favorites", []).filter((item) => item && item.objectID),
     category: localStorage.getItem("artScreen.category") || "",
     experienceStarted: false,
-    selectionArtwork: null,
     interval: [60000, 300000, 600000, 1800000].includes(savedInterval) ? savedInterval : DEFAULT_INTERVAL,
     paused: localStorage.getItem("artScreen.paused") === "true",
     infoPinned: false,
@@ -415,10 +414,7 @@
     elements.start.disabled = true;
     elements.selectionStatus.textContent = "Preparing your gallery…";
     try {
-      const artwork = selected === "landscape" && state.selectionArtwork
-        ? state.selectionArtwork
-        : await findArtwork(selected);
-      state.selectionArtwork = null;
+      const artwork = await findArtwork(selected);
       state.experienceStarted = true;
       elements.app.classList.remove("is-selection-visible");
       elements.app.classList.add("is-ui-visible");
@@ -447,16 +443,6 @@
     elements.selection.removeAttribute("aria-hidden");
     elements.moodSelect.value = state.category;
     elements.moodSelect.focus();
-  }
-
-  async function prepareSelectionBackdrop() {
-    try {
-      const artwork = await findArtwork("landscape");
-      if (state.experienceStarted) return;
-      state.selectionArtwork = artwork;
-      elements.selectionBackdrop.src = artwork.previewImage || artwork.image;
-      elements.selectionBackdrop.classList.add("is-loaded");
-    } catch { /* the selection remains quietly black */ }
   }
 
   function bindEvents() {
@@ -525,7 +511,6 @@
     elements.play.setAttribute("aria-label", state.paused ? "Continuar slideshow" : "Pausar slideshow");
     elements.previous.disabled = true;
     bindEvents();
-    prepareSelectionBackdrop();
   }
 
   init();
