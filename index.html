@@ -9,10 +9,35 @@
     <title>Art Screen</title>
     <link rel="icon" type="image/png" href="logo.png?v=1">
     <link rel="apple-touch-icon" href="logo.png?v=1">
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
   </head>
   <body>
-    <main id="app" class="app is-ui-visible" aria-label="Art Screen">
+    <main id="app" class="app is-selection-visible" aria-label="Art Screen">
+      <section id="selection-screen" class="selection-screen" aria-labelledby="selection-title">
+        <div class="selection-content">
+          <img class="brand-logo" src="logo.png?v=1" alt="" width="72" height="72">
+          <div class="brand-copy">
+            <h1 id="selection-title">Art Screen</h1>
+            <p>Art for the space around you.</p>
+          </div>
+
+          <fieldset class="mood-picker">
+            <legend>Choose a mood</legend>
+            <div class="mood-options">
+              <label><input type="radio" name="mood" value="landscape"><span>Landscape</span></label>
+              <label><input type="radio" name="mood" value="impressionism"><span>Impressionism</span></label>
+              <label><input type="radio" name="mood" value="nature"><span>Nature</span></label>
+              <label><input type="radio" name="mood" value="portraits"><span>Portraits</span></label>
+              <label><input type="radio" name="mood" value="classics"><span>Classics</span></label>
+              <label><input type="radio" name="mood" value="surprise"><span>Surprise me</span></label>
+              <label id="favorites-mood" hidden><input type="radio" name="mood" value="favorites"><span>Favorites</span></label>
+            </div>
+          </fieldset>
+
+          <button id="start-button" class="start-button" type="button">Start</button>
+          <p id="selection-status" class="selection-status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
       <div class="artwork-stage" aria-live="polite">
         <img id="backdrop-a" class="artwork-backdrop is-active" alt="" aria-hidden="true" draggable="false">
         <img id="backdrop-b" class="artwork-backdrop" alt="" aria-hidden="true" draggable="false">
@@ -24,23 +49,8 @@
         </div>
       </div>
 
-      <header class="top-controls controls-surface" aria-label="Filtros da galeria">
-        <label class="select-wrap">
-          <span class="sr-only">Categoria</span>
-          <select id="category-select" aria-label="Escolher categoria">
-            <option value="random">Aleatório</option>
-            <option value="renaissance">Renascimento</option>
-            <option value="impressionism">Impressionismo</option>
-            <option value="landscapes">Paisagens</option>
-            <option value="portraits">Retratos</option>
-            <option value="nature">Natureza</option>
-            <option value="nineteenth">Século XIX</option>
-            <option value="van-gogh">Van Gogh</option>
-            <option value="monet">Monet</option>
-            <option value="rembrandt">Rembrandt</option>
-            <option value="favorites">Favoritos</option>
-          </select>
-        </label>
+      <header class="top-controls controls-surface" aria-label="Atmosfera da galeria">
+        <button id="mood-button" class="mood-button" type="button" title="Escolher outra atmosfera (Esc)">Change mood</button>
       </header>
 
       <section id="artwork-info" class="artwork-info" aria-label="Informações da obra">
@@ -82,6 +92,6 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
     <noscript>O Art Screen precisa de JavaScript ativado para buscar e alternar as obras.</noscript>
-    <script src="script.js?v=14" defer></script>
+    <script src="script.js?v=15" defer></script>
   </body>
 </html>

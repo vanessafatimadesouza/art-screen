@@ -16,25 +16,26 @@
   const REJECTED_CONTENT = /\b(nude|nudity|naked|erotic|bather|bathers|venus|aphrodite|adam and eve|bathsheba)\b/i;
 
   const CATEGORIES = {
-    random: { queries: ["painting", "oil painting", "masterpiece painting", "Renaissance painting", "portrait painting", "landscape painting", "nature painting", "still life painting"] },
-    renaissance: { queries: ["Renaissance painting", "Italian Renaissance painting", "Northern Renaissance painting"] },
+    landscape: { queries: ["landscape painting", "landscape"] },
     impressionism: { queries: ["Impressionism", "Impressionist painting"] },
-    landscapes: { queries: ["landscape painting", "landscape"] },
-    portraits: { queries: ["portrait painting", "portrait"] },
     nature: { queries: ["flowers painting", "nature painting", "botanical painting", "animals painting"] },
-    nineteenth: { queries: ["19th century painting", "nineteenth century painting"] },
-    "van-gogh": { queries: ["Vincent van Gogh"] },
-    monet: { queries: ["Claude Monet"] },
-    rembrandt: { queries: ["Rembrandt"] }
+    portraits: { queries: ["portrait painting", "portrait"] },
+    classics: {
+      queries: ["European painting", "old master painting", "classical painting", "masterpiece painting"],
+      params: { dateBegin: "1200", dateEnd: "1800" }
+    },
+    surprise: { queries: ["painting", "oil painting", "masterpiece painting", "Impressionism", "portrait painting", "landscape painting", "nature painting", "still life painting"] }
   };
 
   const $ = (id) => document.getElementById(id);
   const elements = {
     app: $("app"), images: [$("artwork-a"), $("artwork-b")], backdrops: [$("backdrop-a"), $("backdrop-b")],
+    selection: $("selection-screen"), selectionStatus: $("selection-status"), start: $("start-button"), mood: $("mood-button"), favoriteMood: $("favorites-mood"),
+    moodOptions: [...document.querySelectorAll('input[name="mood"]')],
     welcome: $("welcome"), status: $("status-text"),
     info: $("artwork-info"), title: $("artwork-title"), details: $("artwork-details"), museum: $("artwork-museum"),
     previous: $("previous-button"), play: $("play-button"), next: $("next-button"), favorite: $("favorite-button"),
-    fullscreen: $("fullscreen-button"), category: $("category-select"), interval: $("interval-select"), toast: $("toast")
+    fullscreen: $("fullscreen-button"), interval: $("interval-select"), toast: $("toast")
   };
 
   const loadJSON = (key, fallback) => {
@@ -52,7 +53,8 @@
     previous: [],
     recent: loadJSON("artScreen.recent", []).map(Number).filter(Number.isFinite).slice(-RECENT_LIMIT),
     favorites: loadJSON("artScreen.favorites", []).filter((item) => item && item.objectID),
-    category: localStorage.getItem("artScreen.category") || "random",
+    category: localStorage.getItem("artScreen.category") || "surprise",
+    experienceStarted: false,
     interval: [60000, 300000, 600000, 1800000].includes(savedInterval) ? savedInterval : DEFAULT_INTERVAL,
     paused: localStorage.getItem("artScreen.paused") === "true",
     infoPinned: false,
@@ -82,6 +84,7 @@
   }
 
   function normalizeArtwork(data) {
+    if (data.isPublicDomain !== true) return null;
     const image = data.primaryImage || data.primaryImageSmall;
     if (!image) return null;
     const classificationText = [data.classification, data.objectName, data.medium].filter(Boolean).join(" ");
@@ -123,18 +126,19 @@
   }
 
   async function searchIDs(category) {
-    const config = CATEGORIES[category] || CATEGORIES.random;
+    const config = CATEGORIES[category] || CATEGORIES.surprise;
     const query = config.queries[Math.floor(Math.random() * config.queries.length)];
     const params = new URLSearchParams({ hasImages: "true", q: query });
-    if (config.departmentId) params.set("departmentId", String(config.departmentId));
+    Object.entries(config.params || {}).forEach(([key, value]) => params.set(key, value));
     const result = await getJSON(`${API_ROOT}/search?${params}`);
     const ids = Array.isArray(result.objectIDs) ? result.objectIDs : [];
     return ids.sort(() => Math.random() - 0.5).slice(0, 400);
   }
 
   async function artworkFromFavorites(excluded) {
-    const candidates = state.favorites.filter((item) => !excluded.has(Number(item.objectID)));
-    const fallback = candidates.length ? candidates : state.favorites;
+    const publicDomainFavorites = state.favorites.filter((item) => item.publicDomain === true);
+    const candidates = publicDomainFavorites.filter((item) => !excluded.has(Number(item.objectID)));
+    const fallback = candidates.length ? candidates : publicDomainFavorites;
     if (!fallback.length) throw new Error("Nenhum favorito salvo");
     const saved = fallback[Math.floor(Math.random() * fallback.length)];
     const savedText = [saved.title, saved.classification, saved.objectName].filter(Boolean).join(" ");
@@ -229,7 +233,7 @@
   function updateInfo(artwork) {
     elements.title.textContent = artwork.title;
     elements.details.textContent = [artwork.artist, artwork.year].filter(Boolean).join(" · ");
-    elements.museum.textContent = artwork.museum;
+    elements.museum.textContent = "The Met · Open Access";
     showInfo();
   }
 
@@ -354,6 +358,7 @@
   }
 
   function showUI() {
+    if (!state.experienceStarted) return;
     elements.app.classList.add("is-ui-visible");
     if (!state.infoPinned) showInfo();
     clearTimeout(state.uiTimer);
@@ -378,6 +383,7 @@
       showToast("Adicionada aos favoritos");
     }
     saveJSON("artScreen.favorites", state.favorites);
+    elements.favoriteMood.hidden = state.favorites.length === 0;
     renderFavorite();
   }
 
@@ -388,18 +394,54 @@
     } catch { showToast("Use F11 para entrar em tela cheia"); }
   }
 
-  async function changeCategory(category) {
-    if (category === "favorites" && !state.favorites.length) {
-      showToast("Você ainda não marcou favoritos");
-      elements.category.value = state.category;
+  async function startExperience() {
+    if (state.loading) return;
+    const selected = elements.moodOptions.find((option) => option.checked)?.value || state.category;
+    if (!CATEGORIES[selected] && selected !== "favorites") return;
+    if (selected === "favorites" && !state.favorites.length) {
+      elements.selectionStatus.textContent = "Save an artwork first.";
       return;
     }
-    state.category = category;
+
+    state.category = selected;
     state.generation += 1;
+    state.previous = [];
     resetPreparedQueue();
-    state.idPools.delete(category);
-    try { localStorage.setItem("artScreen.category", category); } catch { /* ignore */ }
-    await goNext();
+    state.idPools.delete(selected);
+    try { localStorage.setItem("artScreen.category", selected); } catch { /* ignore */ }
+
+    state.loading = true;
+    elements.start.disabled = true;
+    elements.selectionStatus.textContent = "Preparing your gallery…";
+    try {
+      const artwork = await findArtwork(selected);
+      state.experienceStarted = true;
+      elements.app.classList.remove("is-selection-visible");
+      elements.app.classList.add("is-ui-visible");
+      elements.selection.setAttribute("aria-hidden", "true");
+      await displayArtwork(artwork, { addToHistory: false });
+      showUI();
+    } catch {
+      elements.selectionStatus.textContent = "The gallery could not connect. Please try again.";
+    } finally {
+      state.loading = false;
+      elements.start.disabled = false;
+      if (state.experienceStarted) elements.selectionStatus.textContent = "";
+    }
+  }
+
+  function returnToSelection() {
+    if (!state.experienceStarted) return;
+    state.experienceStarted = false;
+    state.generation += 1;
+    clearTimeout(state.slideshowTimer);
+    clearTimeout(state.uiTimer);
+    resetPreparedQueue();
+    hideInfo();
+    elements.app.classList.remove("is-ui-visible");
+    elements.app.classList.add("is-selection-visible");
+    elements.selection.removeAttribute("aria-hidden");
+    elements.moodOptions.find((option) => option.value === state.category)?.focus();
   }
 
   function bindEvents() {
@@ -414,7 +456,8 @@
     elements.play.addEventListener("click", () => setPaused(!state.paused));
     elements.favorite.addEventListener("click", toggleFavorite);
     elements.fullscreen.addEventListener("click", toggleFullscreen);
-    elements.category.addEventListener("change", (event) => changeCategory(event.target.value));
+    elements.start.addEventListener("click", startExperience);
+    elements.mood.addEventListener("click", returnToSelection);
     elements.interval.addEventListener("change", (event) => {
       state.interval = Number(event.target.value);
       try { localStorage.setItem("artScreen.interval", String(state.interval)); } catch { /* ignore */ }
@@ -429,6 +472,12 @@
       if (document.hidden) clearTimeout(state.slideshowTimer); else scheduleSlideshow();
     });
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && state.experienceStarted) {
+        event.preventDefault();
+        returnToSelection();
+        return;
+      }
+      if (!state.experienceStarted) return;
       if (["SELECT", "BUTTON"].includes(document.activeElement?.tagName) && !["Escape", "f", "F"].includes(event.key)) return;
       if (event.key === "ArrowRight") { event.preventDefault(); goNext(); }
       else if (event.key === "ArrowLeft") { event.preventDefault(); goPrevious(); }
@@ -446,24 +495,17 @@
     });
   }
 
-  async function init() {
-    if (!CATEGORIES[state.category] && state.category !== "favorites") state.category = "random";
-    if (state.category === "favorites" && !state.favorites.length) state.category = "random";
-    elements.category.value = state.category;
+  function init() {
+    if (!CATEGORIES[state.category] && state.category !== "favorites") state.category = "surprise";
+    if (state.category === "favorites" && !state.favorites.length) state.category = "surprise";
+    elements.favoriteMood.hidden = state.favorites.length === 0;
+    const savedMood = elements.moodOptions.find((option) => option.value === state.category);
+    (savedMood || elements.moodOptions[0]).checked = true;
     elements.interval.value = String(state.interval);
     elements.play.classList.toggle("is-paused", state.paused);
     elements.play.setAttribute("aria-label", state.paused ? "Continuar slideshow" : "Pausar slideshow");
     elements.previous.disabled = true;
     bindEvents();
-    showUI();
-    try {
-      state.loading = true;
-      const artwork = await findArtwork();
-      await displayArtwork(artwork, { addToHistory: false });
-    } catch {
-      elements.status.textContent = "A galeria tentará se conectar novamente…";
-      scheduleRetry();
-    } finally { state.loading = false; }
   }
 
   init();

@@ -1,20 +1,21 @@
 # Art Screen
 
-Art Screen transforma uma guia do navegador em um quadro digital minimalista. Ele busca obras com imagem na coleção pública do Metropolitan Museum of Art, exibe cada imagem inteira sobre fundo preto e alterna as obras com um crossfade lento.
+Art Screen transforma uma guia do navegador em uma galeria digital minimalista. A tela inicial permite escolher uma atmosfera; depois de Start, a interface desaparece e obras Open Access do Metropolitan Museum of Art alternam com um crossfade lento.
 
 O projeto é inteiramente estático: HTML, CSS e JavaScript puro. Não há build, dependências, conta ou backend.
 
 ## Como funciona
 
 - A página consulta a [Collection API do Metropolitan Museum of Art](https://metmuseum.github.io/).
-- Primeiro busca identificadores relacionados à categoria escolhida e depois carrega apenas os dados necessários de uma obra por vez.
+- Primeiro busca identificadores relacionados à atmosfera escolhida e depois carrega apenas os dados necessários de uma obra por vez.
+- Toda obra é validada individualmente e só entra na sequência quando `isPublicDomain === true`; `hasImages=true` é apenas um filtro preliminar.
 - A imagem seguinte é carregada e decodificada antes da troca.
 - O filtro aceita somente imagens horizontais de obras bidimensionais, descartando esculturas, fotografias de objetos, arquitetura e instalações. A obra atual permanece visível se a API ou a imagem seguinte falhar.
 - Favoritos, categoria, intervalo, pausa e um histórico recente ficam apenas neste navegador, em `localStorage`.
 - O histórico reduz repetições recentes. Somente a obra atual e a próxima imagem preparada ficam carregadas.
 - A API do Met é pública, não exige chave e permite chamadas diretas do navegador (CORS).
 
-As categorias são buscas temáticas na coleção do Met. Como a catalogação é feita pelo museu, os resultados podem incluir técnicas próximas à categoria, não apenas pinturas.
+As atmosferas Landscape, Impressionism, Nature, Portraits, Classics e Surprise me são buscas temáticas na coleção do Met. Classics combina termos de pintura com o intervalo de 1200 a 1800; Surprise me alterna entre consultas variadas. Como a catalogação é feita pelo museu, os resultados podem incluir técnicas próximas à categoria, não apenas pinturas.
 
 ## Controles
 
@@ -25,9 +26,10 @@ Mova o mouse para revelar os controles. Após alguns segundos sem interação, i
 - `Espaço`: pausar ou continuar
 - `F`: tela cheia pela API do navegador
 - `I`: mostrar ou esconder as informações da obra
+- `Esc`: voltar à escolha de atmosfera
 - `F11`: tela cheia nativa do navegador (recomendado para uso prolongado)
 
-O coração salva ou remove a obra dos favoritos. Selecione **Favoritos** no menu de categorias para exibir somente as obras salvas.
+O coração salva ou remove a obra dos favoritos. Quando houver itens salvos, a opção **Favorites** aparece discretamente na tela de atmosferas.
 
 ## Testar localmente
 
