@@ -55,7 +55,7 @@
     previous: [],
     recent: loadJSON("artScreen.recent", []).map(Number).filter(Number.isFinite).slice(-RECENT_LIMIT),
     favorites: loadJSON("artScreen.favorites", []).filter((item) => item && item.objectID),
-    category: localStorage.getItem("artScreen.category") || "",
+    category: localStorage.getItem("artScreen.category") || "surprise",
     experienceStarted: false,
     interval: [60000, 300000, 600000, 1800000].includes(savedInterval) ? savedInterval : DEFAULT_INTERVAL,
     paused: localStorage.getItem("artScreen.paused") === "true",
@@ -533,8 +533,8 @@
   }
 
   function init() {
-    if (!CATEGORIES[state.category] && state.category !== "favorites") state.category = "";
-    if (state.category === "favorites" && !state.favorites.length) state.category = "";
+    if (!CATEGORIES[state.category] && state.category !== "favorites") state.category = "surprise";
+    if (state.category === "favorites" && !state.favorites.length) state.category = "surprise";
     elements.favoriteMood.hidden = state.favorites.length === 0;
     elements.moodSelect.value = state.category;
     const selectedMood = elements.moodOptions.find((option) => option.dataset.mood === state.category);
