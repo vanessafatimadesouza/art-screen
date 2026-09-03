@@ -31,7 +31,9 @@
   const elements = {
     app: $("app"), images: [$("artwork-a"), $("artwork-b")], backdrops: [$("backdrop-a"), $("backdrop-b")],
     selection: $("selection-screen"), selectionStatus: $("selection-status"),
-    start: $("start-button"), mood: $("mood-button"), moodSelect: $("mood-select"), favoriteMood: $("favorites-mood"),
+    start: $("start-button"), mood: $("mood-button"), moodSelect: $("mood-select"), moodTrigger: $("mood-trigger"),
+    moodLabel: $("mood-label"), moodMenu: $("mood-menu"), moodOptions: [...document.querySelectorAll("[data-mood]")],
+    favoriteMood: $("favorites-mood"),
     welcome: $("welcome"), status: $("status-text"),
     info: $("artwork-info"), title: $("artwork-title"), details: $("artwork-details"), museum: $("artwork-museum"),
     previous: $("previous-button"), play: $("play-button"), next: $("next-button"), favorite: $("favorite-button"),
@@ -394,6 +396,27 @@
     } catch { showToast("Use F11 para entrar em tela cheia"); }
   }
 
+  function setMoodMenu(open) {
+    elements.moodMenu.hidden = !open;
+    elements.moodTrigger.setAttribute("aria-expanded", String(open));
+    elements.moodTrigger.classList.toggle("is-open", open);
+    if (open) {
+      const selected = elements.moodOptions.find((option) => option.dataset.mood === elements.moodSelect.value);
+      (selected || elements.moodOptions.find((option) => !option.hidden))?.focus();
+    }
+  }
+
+  function selectMood(option) {
+    const value = option.dataset.mood;
+    elements.moodSelect.value = value;
+    elements.moodLabel.textContent = option.textContent;
+    elements.moodOptions.forEach((item) => item.setAttribute("aria-selected", String(item === option)));
+    elements.start.disabled = false;
+    elements.selectionStatus.textContent = "";
+    setMoodMenu(false);
+    elements.moodTrigger.focus();
+  }
+
   async function startExperience() {
     if (state.loading) return;
     const selected = elements.moodSelect.value;
@@ -442,7 +465,7 @@
     elements.app.classList.add("is-selection-visible");
     elements.selection.removeAttribute("aria-hidden");
     elements.moodSelect.value = state.category;
-    elements.moodSelect.focus();
+    elements.moodTrigger.focus();
   }
 
   function bindEvents() {
@@ -458,9 +481,12 @@
     elements.favorite.addEventListener("click", toggleFavorite);
     elements.fullscreen.addEventListener("click", toggleFullscreen);
     elements.start.addEventListener("click", startExperience);
-    elements.moodSelect.addEventListener("change", () => {
-      elements.start.disabled = false;
-      elements.selectionStatus.textContent = "";
+    elements.moodTrigger.addEventListener("click", () => {
+      setMoodMenu(elements.moodMenu.hidden);
+    });
+    elements.moodOptions.forEach((option) => option.addEventListener("click", () => selectMood(option)));
+    document.addEventListener("pointerdown", (event) => {
+      if (!elements.moodMenu.hidden && !event.target.closest(".mood-select-wrap")) setMoodMenu(false);
     });
     elements.mood.addEventListener("click", returnToSelection);
     elements.interval.addEventListener("change", (event) => {
@@ -477,6 +503,12 @@
       if (document.hidden) clearTimeout(state.slideshowTimer); else scheduleSlideshow();
     });
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !state.experienceStarted && !elements.moodMenu.hidden) {
+        event.preventDefault();
+        setMoodMenu(false);
+        elements.moodTrigger.focus();
+        return;
+      }
       if (event.key === "Escape" && state.experienceStarted) {
         event.preventDefault();
         returnToSelection();
@@ -505,6 +537,9 @@
     if (state.category === "favorites" && !state.favorites.length) state.category = "";
     elements.favoriteMood.hidden = state.favorites.length === 0;
     elements.moodSelect.value = state.category;
+    const selectedMood = elements.moodOptions.find((option) => option.dataset.mood === state.category);
+    elements.moodLabel.textContent = selectedMood?.textContent || "Select a mood";
+    elements.moodOptions.forEach((option) => option.setAttribute("aria-selected", String(option === selectedMood)));
     elements.start.disabled = !state.category;
     elements.interval.value = String(state.interval);
     elements.play.classList.toggle("is-paused", state.paused);

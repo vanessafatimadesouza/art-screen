@@ -9,7 +9,7 @@
     <title>Art Screen</title>
     <link rel="icon" type="image/png" href="logo.png?v=1">
     <link rel="apple-touch-icon" href="logo.png?v=1">
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
   </head>
   <body>
     <main id="app" class="app is-selection-visible" aria-label="Art Screen">
@@ -26,16 +26,20 @@
 
           <label class="mood-picker" for="mood-select">Choose a mood</label>
           <div class="mood-select-wrap">
-            <select id="mood-select" aria-label="Choose a mood">
-              <option value="" disabled>Select a mood</option>
-              <option value="landscape">Landscape</option>
-              <option value="impressionism">Impressionism</option>
-              <option value="nature">Nature</option>
-              <option value="portraits">Portraits</option>
-              <option value="classics">Classics</option>
-              <option value="surprise">Surprise me</option>
-              <option id="favorites-mood" value="favorites" hidden>Favorites</option>
-            </select>
+            <input id="mood-select" type="hidden" value="">
+            <button id="mood-trigger" class="mood-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span id="mood-label">Select a mood</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+            </button>
+            <div id="mood-menu" class="mood-menu" role="listbox" aria-label="Choose a mood" hidden>
+              <button type="button" role="option" data-mood="landscape">Landscape</button>
+              <button type="button" role="option" data-mood="impressionism">Impressionism</button>
+              <button type="button" role="option" data-mood="nature">Nature</button>
+              <button type="button" role="option" data-mood="portraits">Portraits</button>
+              <button type="button" role="option" data-mood="classics">Classics</button>
+              <button type="button" role="option" data-mood="surprise">Surprise me</button>
+              <button id="favorites-mood" type="button" role="option" data-mood="favorites" hidden>Favorites</button>
+            </div>
           </div>
 
           <button id="start-button" class="start-button" type="button">Start</button>
@@ -96,6 +100,6 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
     <noscript>O Art Screen precisa de JavaScript ativado para buscar e alternar as obras.</noscript>
-    <script src="script.js?v=17" defer></script>
+    <script src="script.js?v=18" defer></script>
   </body>
 </html>
