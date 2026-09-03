@@ -8,8 +8,8 @@
   const RECENT_LIMIT = 35;
   const FETCH_TIMEOUT = 12000;
   const MAX_ATTEMPTS = 24;
-  const CANDIDATE_BATCH_SIZE = 3;
-  const PRELOAD_QUEUE_SIZE = 4;
+  const CANDIDATE_BATCH_SIZE = 2;
+  const PRELOAD_QUEUE_SIZE = 1;
   const MIN_LANDSCAPE_RATIO = 1.15;
   const REJECTED_TYPES = /sculpture|photograph|architecture|installation|furniture|vessel|ceramic|armor|textile|jewelry|coin|medal|relief|bust|statue|metalwork|musical instrument|costume|basket|bowl|box|container|cup|dish|plate|weapon|tool|glassware|silverware|woodwork/i;
   const REJECTED_ORIGINS = /japan|japanese|islamic|arab|arabic/i;
@@ -130,7 +130,7 @@
   async function searchIDs(category) {
     const config = CATEGORIES[category] || CATEGORIES.surprise;
     const query = config.queries[Math.floor(Math.random() * config.queries.length)];
-    const params = new URLSearchParams({ hasImages: "true", q: query });
+    const params = new URLSearchParams({ hasImages: "true", medium: "Paintings", q: query });
     Object.entries(config.params || {}).forEach(([key, value]) => params.set(key, value));
     const result = await getJSON(`${API_ROOT}/search?${params}`);
     const ids = Array.isArray(result.objectIDs) ? result.objectIDs : [];
@@ -445,7 +445,7 @@
       await displayArtwork(artwork, { addToHistory: false });
       showUI();
     } catch {
-      elements.selectionStatus.textContent = "The gallery could not connect. Please try again.";
+      elements.selectionStatus.textContent = "The Met is taking a moment. Please try again.";
     } finally {
       state.loading = false;
       elements.start.disabled = false;
