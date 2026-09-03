@@ -235,7 +235,7 @@
   function updateInfo(artwork) {
     elements.title.textContent = artwork.title;
     elements.details.textContent = [artwork.artist, artwork.year].filter(Boolean).join(" · ");
-    elements.museum.textContent = "The Met · Open Access";
+    elements.museum.textContent = "The Metropolitan Museum of Art, New York";
     showInfo();
   }
 
