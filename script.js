@@ -30,8 +30,8 @@
   const $ = (id) => document.getElementById(id);
   const elements = {
     app: $("app"), images: [$("artwork-a"), $("artwork-b")], backdrops: [$("backdrop-a"), $("backdrop-b")],
-    selection: $("selection-screen"), selectionStatus: $("selection-status"), start: $("start-button"), mood: $("mood-button"), favoriteMood: $("favorites-mood"),
-    moodOptions: [...document.querySelectorAll('input[name="mood"]')],
+    selection: $("selection-screen"), selectionBackdrop: $("selection-backdrop"), selectionStatus: $("selection-status"),
+    start: $("start-button"), mood: $("mood-button"), moodSelect: $("mood-select"), favoriteMood: $("favorites-mood"),
     welcome: $("welcome"), status: $("status-text"),
     info: $("artwork-info"), title: $("artwork-title"), details: $("artwork-details"), museum: $("artwork-museum"),
     previous: $("previous-button"), play: $("play-button"), next: $("next-button"), favorite: $("favorite-button"),
@@ -53,8 +53,9 @@
     previous: [],
     recent: loadJSON("artScreen.recent", []).map(Number).filter(Number.isFinite).slice(-RECENT_LIMIT),
     favorites: loadJSON("artScreen.favorites", []).filter((item) => item && item.objectID),
-    category: localStorage.getItem("artScreen.category") || "surprise",
+    category: localStorage.getItem("artScreen.category") || "",
     experienceStarted: false,
+    selectionArtwork: null,
     interval: [60000, 300000, 600000, 1800000].includes(savedInterval) ? savedInterval : DEFAULT_INTERVAL,
     paused: localStorage.getItem("artScreen.paused") === "true",
     infoPinned: false,
@@ -396,7 +397,7 @@
 
   async function startExperience() {
     if (state.loading) return;
-    const selected = elements.moodOptions.find((option) => option.checked)?.value || state.category;
+    const selected = elements.moodSelect.value;
     if (!CATEGORIES[selected] && selected !== "favorites") return;
     if (selected === "favorites" && !state.favorites.length) {
       elements.selectionStatus.textContent = "Save an artwork first.";
@@ -414,7 +415,10 @@
     elements.start.disabled = true;
     elements.selectionStatus.textContent = "Preparing your gallery…";
     try {
-      const artwork = await findArtwork(selected);
+      const artwork = selected === "landscape" && state.selectionArtwork
+        ? state.selectionArtwork
+        : await findArtwork(selected);
+      state.selectionArtwork = null;
       state.experienceStarted = true;
       elements.app.classList.remove("is-selection-visible");
       elements.app.classList.add("is-ui-visible");
@@ -441,7 +445,18 @@
     elements.app.classList.remove("is-ui-visible");
     elements.app.classList.add("is-selection-visible");
     elements.selection.removeAttribute("aria-hidden");
-    elements.moodOptions.find((option) => option.value === state.category)?.focus();
+    elements.moodSelect.value = state.category;
+    elements.moodSelect.focus();
+  }
+
+  async function prepareSelectionBackdrop() {
+    try {
+      const artwork = await findArtwork("landscape");
+      if (state.experienceStarted) return;
+      state.selectionArtwork = artwork;
+      elements.selectionBackdrop.src = artwork.previewImage || artwork.image;
+      elements.selectionBackdrop.classList.add("is-loaded");
+    } catch { /* the selection remains quietly black */ }
   }
 
   function bindEvents() {
@@ -457,6 +472,10 @@
     elements.favorite.addEventListener("click", toggleFavorite);
     elements.fullscreen.addEventListener("click", toggleFullscreen);
     elements.start.addEventListener("click", startExperience);
+    elements.moodSelect.addEventListener("change", () => {
+      elements.start.disabled = false;
+      elements.selectionStatus.textContent = "";
+    });
     elements.mood.addEventListener("click", returnToSelection);
     elements.interval.addEventListener("change", (event) => {
       state.interval = Number(event.target.value);
@@ -496,16 +515,17 @@
   }
 
   function init() {
-    if (!CATEGORIES[state.category] && state.category !== "favorites") state.category = "surprise";
-    if (state.category === "favorites" && !state.favorites.length) state.category = "surprise";
+    if (!CATEGORIES[state.category] && state.category !== "favorites") state.category = "";
+    if (state.category === "favorites" && !state.favorites.length) state.category = "";
     elements.favoriteMood.hidden = state.favorites.length === 0;
-    const savedMood = elements.moodOptions.find((option) => option.value === state.category);
-    (savedMood || elements.moodOptions[0]).checked = true;
+    elements.moodSelect.value = state.category;
+    elements.start.disabled = !state.category;
     elements.interval.value = String(state.interval);
     elements.play.classList.toggle("is-paused", state.paused);
     elements.play.setAttribute("aria-label", state.paused ? "Continuar slideshow" : "Pausar slideshow");
     elements.previous.disabled = true;
     bindEvents();
+    prepareSelectionBackdrop();
   }
 
   init();
